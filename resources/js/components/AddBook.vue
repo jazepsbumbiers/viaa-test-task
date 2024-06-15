@@ -16,7 +16,7 @@
                 ref="form"
                 :can-submit="canSubmit"
                 @form-updated="updateFormValidity"
-                @item-added="data => itemAdded(data, modalId)"
+                @item-added="itemAdded()"
                 @upload-in-progress="progress => setModalButtonsAvailability(progress)"
                 @all-uploads-cancelled="setModalButtonsAvailability(0)"
             />
@@ -63,10 +63,13 @@
                     this.canSubmit = false;
                 }
             },
-            async itemAdded(data, modalId) {
-                this.$bvModal.hide(modalId);
+            async itemAdded() {
+                this.$bvModal.hide(this.modalId);
 
-                this.$toast.success('Book saved');
+                this.$bvToast.toast('Book saved', {
+                    title: 'Action successfully completed',
+                    variant: 'success',
+                });
             },
             setModalButtonsAvailability(progress) {
                 if (progress === 100 || progress === 0) {

@@ -299,6 +299,32 @@
 
                 this.item.photos.splice(idx, 1);
             },
+            async submit() {
+                if (this.loading) {
+                    return;
+                }
+
+                this.loading = true;
+
+                const { response, errors } = await this.formRequest('POST', `http://127.0.0.1:8000/books`, this.item);
+
+                const hasErrors = Boolean(Object.keys(errors).length);
+
+                if (hasErrors) {
+                    this.errors = errors;
+                    this.loading = false;
+
+                    return;
+                }
+
+                this.errors = {};
+
+                this.loading = false;
+
+                this.item = response.data;
+
+                this.$emit('item-added');
+            },
         },
     };
 </script>

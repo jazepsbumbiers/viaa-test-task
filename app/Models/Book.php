@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Book extends Model
 {
@@ -27,6 +28,8 @@ class Book extends Model
     protected $fillable = [
         'title',
         'type',
+        'category_id',
+        'manufacturer_id',
         'summary',
         'price',
         'in_stock',
@@ -76,5 +79,13 @@ class Book extends Model
     public function manufacturer(): BelongsTo
     {
         return $this->belongsTo(Manufacturer::class);
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function photo(): HasOne
+    {
+        return $this->hasOne(Photo::class);
     }
 }

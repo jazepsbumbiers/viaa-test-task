@@ -18,11 +18,11 @@ mix.js('resources/js/app.js', 'public/js')
     .version()
     .disableNotifications();
 
-mix.browserSync({
-    proxy: 'http://127.0.0.1:8000',
-    open: false,
-    notify: false,
-});
+// mix.browserSync({
+//     proxy: 'http://127.0.0.1:8000',
+//     open: false,
+//     notify: false,
+// });
 
 mix.webpackConfig({
     resolve: {
