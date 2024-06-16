@@ -10,6 +10,7 @@ import { BootstrapVue } from 'bootstrap-vue';
 // Import Bootstrap and BootstrapVue CSS files (order is important)
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
+import store from '@/store';
 
 window.Vue = require('vue').default;
 
@@ -40,4 +41,5 @@ files.keys().map(key => {
 
 const app = new Vue({
     el: '#app',
+    store,
 });

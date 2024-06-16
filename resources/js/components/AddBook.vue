@@ -26,6 +26,7 @@
 
 <script>
     import Request from '@/mixins/Request';
+    import { mapGetters } from 'vuex';
 
     export default {
         mixins: [
@@ -49,6 +50,12 @@
                 closeButtonHidden: false,
             };
         },
+        computed: {
+            ...mapGetters({
+                currentPage: 'getCurrentPage',
+                itemsPerPage: 'getItemsPerPage',
+            }),
+        },
         methods: {
             updateFormValidity() {
                 if (this.$refs.form) {
@@ -69,6 +76,11 @@
                 this.$bvToast.toast('Book saved', {
                     title: 'Action successfully completed',
                     variant: 'success',
+                });
+
+                await this.$store.dispatch('getBooks', {
+                    page: this.currentPage,
+                    perPage: this.itemsPerPage,
                 });
             },
             setModalButtonsAvailability(progress) {

@@ -33,6 +33,7 @@
         "@uppy/image-editor": "^2.3.0",
         "@uppy/xhr-upload": "^3.2.0",
         "bootstrap-vue": "^2.23.1",
-        "moment": "^2.30.1"
+        "moment": "^2.30.1",
+        "vuex": "^3.6.2"
     }
 }

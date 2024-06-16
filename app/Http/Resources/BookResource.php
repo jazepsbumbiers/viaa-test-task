@@ -16,9 +16,10 @@ class BookResource extends JsonResource
     {
         return [
             'id'            => $this->id,
+            'title'         => $this->title,
             'type'          => $this->type,
-            'category'      => $this->category,
-            'manufacturer'  => $this->manufacturer,
+            'category'      => new CategoryResource($this->whenLoaded('category')),
+            'manufacturer'  => new ManufacturerResource($this->whenLoaded('manufacturer')),
             'summary'       => $this->summary,
             'price'         => $this->price,
             'in_stock'      => $this->in_stock,
