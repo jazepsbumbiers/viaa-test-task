@@ -135,7 +135,7 @@
                 </b-col>
             </b-row>
 
-            <b-row>
+            <b-row v-if="!item.photos.length || hasPlaceholderImage()">
                 <b-col md="6">
                     <b-form-group
                         v-if="!hideFields.includes('uppy')"
@@ -153,6 +153,26 @@
                             @all-uploads-cancelled="$emit('all-uploads-cancelled')"
                         />
                     </b-form-group>
+                </b-col>
+            </b-row>
+
+            <b-row v-else>
+                <b-col md="6">
+                    <b-img 
+                        :src="id ? `storage/${item.photos[0].path}` : `storage/${item.photos[0].photoPath}`" 
+                        fluid 
+                        :alt="item.photos[0].name"
+                        class="mt-2"
+                    />
+
+                    <b-button 
+                        size="sm"
+                        variant="danger"
+                        class="mt-2"
+                        @click="deletePhoto(item.photos[0].name)"
+                    >
+                        Remove
+                    </b-button>
                 </b-col>
             </b-row>
 
@@ -217,6 +237,10 @@
             this.getTypes();
             this.getCategories();
             this.getManufacturers();
+
+            if (this.id) {
+                this.loadItem();
+            }
         },
         methods: {
             async getTypes() {
@@ -306,7 +330,11 @@
 
                 this.loading = true;
 
-                const { response, errors } = await this.formRequest('POST', `http://127.0.0.1:8000/books`, this.item);
+                const { response, errors } = await this.formRequest(
+                    this.id ? 'PUT' : 'POST',
+                    this.id ? `http://127.0.0.1:8000/books/${this.id}` : `http://127.0.0.1:8000/books`,
+                    this.item
+                );
 
                 const hasErrors = Boolean(Object.keys(errors).length);
 
@@ -316,7 +344,7 @@
 
                     return;
                 }
-
+ 
                 this.errors = {};
 
                 this.loading = false;
@@ -324,6 +352,57 @@
                 this.item = response.data;
 
                 this.$emit('item-added');
+            },
+            async loadItem() {
+                this.loading = true;
+
+                try {
+                    const { response } = await this.request('GET', `/books/${this.id}`);
+
+                    const book = response.data;
+
+                    this.item = {
+                        ...book,
+                        category: book.category.id,
+                        manufacturer: book.manufacturer.id,
+                        in_stock: book.in_stock === 1,
+                        photos: [book.photo],
+                    };
+
+                    delete this.item.photo;
+
+                    this.loading = false;
+                } catch (error) {
+                    this.loading = false;
+
+                    console.error(error);
+                }
+            },
+            hasPlaceholderImage() {
+                const item = this.item.photos[0];
+
+                if (!item) {
+                    return true;
+                }
+
+                return item.name === "placeholder.png";
+            },
+            async deletePhoto(name) {
+                const params = {
+                    path: 'uploads/images',
+                    disk: 'public',
+                };
+                
+                const paramString = jQuery.param(params);
+
+                await this.request('DELETE', `/files/${encodeURIComponent(name)}?${paramString}`);
+
+                this.$bvToast.toast('Photo deleted', {
+                    title: 'Action successfully completed',
+                    variant: 'success',
+                });
+
+                this.item.photos = [];
             },
         },
     };

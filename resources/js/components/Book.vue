@@ -20,14 +20,14 @@
         </b-card-text>
 
         <div class="actions-and-info-block">
-            <!-- <b-button
+            <b-button
                 variant="primary"
                 size="sm"
                 class="d-block"
-                v-b-modal="`show-recipe-${recipe.id}-modal`"
+                v-b-modal="`edit-book-${book.id}-modal`"
             >
-                Show/edit recipe
-            </b-button> -->
+                Edit
+            </b-button>
 
             <b-button
                 variant="danger"
@@ -44,40 +44,30 @@
             </b-card-text>
         </div>
 
-        <!-- <b-modal
-            :id="`show-recipe-${recipe.id}-modal`"
-            :title="recipe.name"
-            centered
-            @ok.prevent="$refs.editForm.submit()"
+        <modal
+            :id="`edit-book-${book.id}-modal`"
+            :title="book.title"
+            :ok-disabled="okButtonDisabled"
+            :cancel-disabled="cancelButtonDisabled"
+            :hide-header-close="closeButtonHidden"
+            @ok-pressed="$refs.form.submit()"
         >
-            <template #modal-footer="{ ok, cancel }">
-                <b-button size="md" variant="danger" :disabled="!resetAllowed" @click="$refs.editForm.resetForm(recipe.id)">
-                    Clear
-                </b-button>
-
-                <b-button size="md" variant="secondary" class="ml-auto" @click="cancel()">
-                    Cancel
-                </b-button>
-
-                <b-button size="md" variant="success" :disabled="!submitAllowed" @click="ok()">
-                    {{ external ? 'Save to collection' : 'Update' }}
-                </b-button>
-            </template>
-
-            <Form
-                :id="recipe.id"
-                ref="editForm"
-                :data="external ? { ...recipe } : null"
-                @submit-allowed="v => submitAllowed = v"
-                @reset-allowed="v => resetAllowed = v"
-                @item-updated="(item) => itemUpdated(item)"
+            <add-book-form 
+                ref="form"
+                :id="book.id"
+                :can-submit="canSubmit"
+                @form-updated="updateFormValidity"
+                @item-added="itemAdded(book)"
+                @upload-in-progress="progress => setModalButtonsAvailability(progress)"
+                @all-uploads-cancelled="setModalButtonsAvailability(0)"
             />
-        </b-modal> -->
+        </modal>
     </b-card>
 </template>
 
 <script>
     import Request from '@/mixins/Request';
+    import { mapGetters } from 'vuex';
 
     export default {
         mixins: [
@@ -115,12 +105,32 @@
         },
         data() {
             return {
-                submitAllowed: false,
-                resetAllowed: false,
+                canSubmit: false,
+                cancelButtonDisabled: false,
+                okButtonDisabled: true,
+                closeButtonHidden: false,
             };
         },
-    
+        computed: {
+            ...mapGetters({
+                currentPage: 'getCurrentPage',
+                itemsPerPage: 'getItemsPerPage',
+            }),
+        },
         methods: {
+            updateFormValidity() {
+                if (this.$refs.form) {
+                    const formItem = this.$refs.form.item;
+                    
+                    this.canSubmit = Object.entries(formItem)
+                        .filter(([key, ]) => !['photos', 'in_stock'].includes(key))
+                        .every(([, value]) => value);
+
+                    this.okButtonDisabled = !this.canSubmit;
+                } else {
+                    this.canSubmit = false;
+                }
+            },
             getType(type) {
                 return this.types.find(t => t.id === type)?.name ?? '-';
             },
@@ -162,6 +172,32 @@
                 });
 
                 this.$emit('item-deleted');
+            },
+            async itemAdded(book) {
+                this.$bvModal.hide(`edit-book-${book.id}-modal`);
+
+                this.$bvToast.toast('Book saved', {
+                    title: 'Action successfully completed',
+                    variant: 'success',
+                });
+
+                await this.$store.dispatch('getBooks', {
+                    page: this.currentPage,
+                    perPage: this.itemsPerPage,
+                });
+            },
+            setModalButtonsAvailability(progress) {
+                if (progress === 100 || progress === 0) {
+                    this.cancelButtonDisabled = false;
+                    this.okButtonDisabled = false;
+                    this.closeButtonHidden = false;
+
+                    return;
+                }
+
+                this.cancelButtonDisabled = true;
+                this.okButtonDisabled = true;
+                this.closeButtonHidden = true;
             },
         },
     };

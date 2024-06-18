@@ -8,8 +8,6 @@
             :ok-disabled="okButtonDisabled"
             :cancel-disabled="cancelButtonDisabled"
             :hide-header-close="closeButtonHidden"
-            @cancel-pressed="handleModalClose"
-            @close-pressed="handleModalClose"
             @ok-pressed="$refs.form.submit()"
         >
             <add-book-form 
@@ -95,24 +93,6 @@
                 this.cancelButtonDisabled = true;
                 this.okButtonDisabled = true;
                 this.closeButtonHidden = true;
-            },
-            async handleModalClose() {
-                try {
-                    const anyFileUploaded = this.$refs.form.item.photos.length;
-
-                    if (anyFileUploaded) {
-                        const params = {
-                            disk: 'public',
-                            directory: 'uploads/images',
-                        };
-                        
-                        const paramString = jQuery.param(params);
-                        
-                        await this.request('DELETE', `files/remove-uploaded-photos-without-directory?${paramString}`);
-                    }
-                } catch (error) {
-                    throw new Error(error.toString());
-                }
             },
         },
     };

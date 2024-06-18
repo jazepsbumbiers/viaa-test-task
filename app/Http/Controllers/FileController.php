@@ -52,29 +52,4 @@ class FileController extends Controller
 
         return response()->json();
     }
-
-    /**
-     * @param Request $request
-     *
-     * @return JsonResponse
-     */
-    public function removeUploadedFilesWithoutDirectory(Request $request): JsonResponse
-    {   
-        $disk = $request->query('disk');
-        $directory = $request->query('directory');
-
-        $files = Storage::disk($disk)->listContents($directory);
-
-        foreach ($files as $file) {
-            $path = str_replace('/', "\\", Storage::disk($disk)->path($file['path']));
-
-            if (is_dir($path)) {
-                continue;
-            }
-
-            unlink($path);
-        }
-
-        return response()->json();
-    }
 }

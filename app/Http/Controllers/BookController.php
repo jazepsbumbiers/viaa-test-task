@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Book\StoreRequest;
+use App\Http\Requests\Book\UpdateRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Database\Eloquent\Collection;
@@ -90,26 +91,64 @@ class BookController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @param Book $book
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(Book $book): JsonResponse
     {
-        //
+        $book->load(['manufacturer', 'category', 'photo']);
+
+        return response()->json(new BookResource($book));
     }
 
     /**
-     * Update the specified resource in storage.
+     * @param UpdateRequest $request
+     * @param Book $book
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(UpdateRequest $request, Book $book): JsonResponse
     {
-        //
+        $book->load(['photo']);
+
+        $book->update([
+            'title'             => $request->title,
+            'type'              => $request->type,
+            'category_id'       => $request->category,
+            'manufacturer_id'   => $request->manufacturer,
+            'summary'           => $request->summary,
+            'price'             => $request->price,
+            'in_stock'          => $request->in_stock,
+        ]);
+
+        $book->photo()->delete();
+
+        if (count($request->photos) === 0) {
+            $book->photo()->create([
+                'name'      => 'placeholder.png',
+                'caption'   =>  null,
+                'size'      => Storage::disk('public')->size("uploads/images/placeholder.png"),
+                'path'      => "uploads/images/placeholder.png",
+                'book_id'   => $book->id,
+            ]);
+        }
+
+        foreach ($request->photos as $photoData) {
+            $photoFileName = explode('/', $photoData['photoPath']);
+
+            $book->photo()->create([
+                'name'      => $photoData['name'],
+                'caption'   => $photoData['caption'] ?? null,
+                'size'      => Storage::disk('public')->size("uploads/images/$photoFileName[2]"),
+                'path'      => "uploads/images/$photoFileName[2]",
+                'book_id'   => $book->id,
+            ]);
+        }
+
+        $book->save();
+
+        return response()->json(new BookResource($book));
     }
 
     /**
