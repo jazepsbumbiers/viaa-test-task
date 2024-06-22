@@ -1,7 +1,7 @@
 <template>
     <b-card
         :title="book.title"
-        :img-src="book.photo.path"
+        :img-src="book.photos[0].path"
         :img-alt="book.title"
         img-top
         :img-height="imgHeight"

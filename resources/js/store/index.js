@@ -34,13 +34,18 @@ const actions = {
             { params: { page, perPage } }
         );
 
-        const books = response.data.data.map(book => ({
-            ...book,
-            photo: {
-                ...book.photo,
-                path: `storage/${book.photo.path}`
-            }
-        }));
+        const books = response.data.data.map(book => {
+            return {
+                ...book,
+                photos: [
+                    {
+                        ...book.photo,
+                        path: `storage/${book.photo.path}`
+                    }
+                ],
+            };
+        });
+        
         const totalRows = response.data.meta.total;
 
         commit('SET_BOOKS', books);
